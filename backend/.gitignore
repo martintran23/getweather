@@ -1,0 +1,29 @@
+# Ignore environment variables file
+.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# VSCode settings (if you use VSCode)
+.vscode/
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+
+# IDE specific files (JetBrains PyCharm, etc.)
+.idea/
+
+# macOS system files
+.DS_Store
+
+# Logs
+*.log

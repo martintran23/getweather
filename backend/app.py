@@ -10,16 +10,15 @@ import io
 from datetime import datetime
 import requests
 
-
 load_dotenv()  # Load environment variables from .env file
 
 app = Flask(__name__)
 CORS(app)
 
-uri = os.getenv("MONGODB_URI")  # This will now read from your .env file
+uri = os.getenv("MONGODB_URI")
 client = MongoClient(uri, server_api=ServerApi('1'))
-db = client.weatherappdb  # database name
-weather_collection = db.weather_data  # collection name
+db = client.weatherappdb
+weather_collection = db.weather_data
 
 def is_valid_date(date_str):
     try:
@@ -29,34 +28,64 @@ def is_valid_date(date_str):
         return False
 
 def location_exists(city):
-    geo_api_key = os.getenv("OPENWEATHERMAP_API_KEY")  # put in .env
-    response = requests.get(f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={geo_api_key}")
+    geo_api_key = os.getenv("OPENWEATHERMAP_API_KEY")
+    response = requests.get(
+        f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={geo_api_key}"
+    )
     return response.status_code == 200 and len(response.json()) > 0
 
 @app.route('/saveWeather', methods=['POST'])
 def save_weather():
-    data = request.json
-    city = data.get("city")
-    start = data.get("start_date")
-    end = data.get("end_date")
+    try:
+        data = request.get_json()
 
-    if not all([city, start, end]):
-        return jsonify({"error": "Missing required fields"}), 400
+        if not all(k in data for k in ('city', 'date', 'temp', 'weather')):
+            return jsonify({'error': 'Missing required fields'}), 400
 
-    if not is_valid_date(start) or not is_valid_date(end):
-        return jsonify({"error": "Invalid date format, use YYYY-MM-DD"}), 400
+        record = {
+            'city': data['city'],
+            'date': data['date'],
+            'temp': data['temp'],
+            'weather': data['weather']  # should be a string
+        }
+        db.weather.insert_one(record)
+        return jsonify({'message': 'Weather saved successfully'}), 200
 
-    if not location_exists(city):
-        return jsonify({"error": "Invalid location"}), 400
-
-    inserted = weather_collection.insert_one(data)
-    return jsonify({"message": "Weather saved", "id": str(inserted.inserted_id)})
+    except Exception as e:
+        print('Error in /saveWeather:', e)
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/getWeather', methods=['GET'])
 def get_weather():
     records = list(weather_collection.find())
     for r in records:
         r['_id'] = str(r['_id'])
+    return jsonify(records)
+
+@app.route('/getWeatherByDateRange', methods=['GET'])
+def get_weather_by_date_range():
+    city = request.args.get('city')
+    start = request.args.get('start_date')
+    end = request.args.get('end_date')
+
+    if not city or not start or not end:
+        return jsonify({"error": "Missing required query parameters"}), 400
+
+    if not is_valid_date(start) or not is_valid_date(end):
+        return jsonify({"error": "Invalid date format, use YYYY-MM-DD"}), 400
+
+    query = {
+        "city": city,
+        "date": {
+            "$gte": start,
+            "$lte": end
+        }
+    }
+
+    records = list(weather_collection.find(query))
+    for r in records:
+        r['_id'] = str(r['_id'])
+
     return jsonify(records)
 
 @app.route('/updateWeather/<id>', methods=['PUT'])
@@ -85,18 +114,15 @@ def delete_weather(id):
 def export_weather_csv():
     records = list(weather_collection.find())
 
-    # Use StringIO to write CSV in memory
     def generate():
         data = io.StringIO()
         writer = csv.writer(data)
 
-        # Write header
         writer.writerow(("City", "Temperature", "_id"))
         yield data.getvalue()
         data.seek(0)
         data.truncate(0)
 
-        # Write rows
         for record in records:
             writer.writerow([
                 record.get("city", "N/A"),
@@ -107,10 +133,30 @@ def export_weather_csv():
             data.seek(0)
             data.truncate(0)
 
-    # Return a streamed response as CSV
     return Response(
         generate(),
         mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=weather_data.csv"}
+    )
+
+@app.route('/exportWeather', methods=['GET'])
+def export_weather():
+    records = list(weather_collection.find())
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(['City', 'Date', 'Temp (°C)', 'Weather Description'])
+    for r in records:
+        writer.writerow([
+            r.get('city', ''),
+            r.get('date', ''),
+            r.get('temp', ''),
+            r.get('weather') if isinstance(r.get('weather'), str) else r.get('weather', {}).get('description', '')
+        ])
+
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
         headers={"Content-Disposition": "attachment; filename=weather_data.csv"}
     )
 

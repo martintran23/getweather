@@ -1,6 +1,7 @@
 # Weather App — Fullstack Setup
 
 This project consists of a **Flask backend** API and a **Next.js frontend** deployed locally and separately. The backend handles weather data storage and retrieval, while the frontend interacts with users. The app uses cloud-based storage via MongoDB Atlas for storing weather data.
+
 ---
 
 ## Setup Instructions

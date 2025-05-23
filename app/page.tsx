@@ -64,7 +64,12 @@ export default function Home() {
 
   const BACKEND_URL = 'https://getweather-m2u5.onrender.com'; // Adjust backend URL if needed
   const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-
+  fetch(`https://api.openweathermap.org/data/2.5/weather?q=Westminster&appid=${apiKey}&units=metric`)
+    .then(response => response.json())
+    .then(data => {
+    console.log(data);
+    });
+    
   const fetchWeather = async () => {
     if (!city.trim()) {
       setError('Please enter a city name');

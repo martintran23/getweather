@@ -93,6 +93,8 @@ def update_weather(id):
         return jsonify({"error": "Record not found"}), 404
     return jsonify({"message": "Weather record updated"})
 
+
+
 @app.route('/deleteWeather/<id>', methods=['DELETE'])
 def delete_weather(id):
     result = weather_collection.delete_one({"_id": ObjectId(id)})

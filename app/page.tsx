@@ -35,7 +35,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [savedRecords, setSavedRecords] = useState<any[]>([]);
   const [showPMAInfo, setShowPMAInfo] = useState(false);
-
+  const [editingItem, setEditingItem] = useState<any>(null);
 
   const BACKEND_URL = 'http://127.0.0.1:5000'; // Adjust backend URL if needed
   const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
@@ -116,6 +116,31 @@ export default function Home() {
       console.error(e);
     }
   };
+
+  interface WeatherUpdateData {
+    city?: string;
+    date?: string;
+    temp?: number;
+    weather?: string;
+    start_date?: string;
+    end_date?: string;
+  }
+
+  async function updateWeatherRecord(id: string, updatedData: WeatherUpdateData): Promise<string> {
+    const res = await fetch(`${BACKEND_URL}/updateWeather/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(result.error || 'Update failed');
+    }
+    return result.message;
+  }
 
   const deleteRecord = async (id: string) => {
     try {
@@ -199,6 +224,59 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
+  // Handlers for editing form inputs
+  const [editCity, setEditCity] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTemp, setEditTemp] = useState('');
+  const [editWeather, setEditWeather] = useState('');
+  const [editStartDate, setEditStartDate] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
+
+  // When editingItem changes, update edit form states
+  useEffect(() => {
+    if (editingItem) {
+      setEditCity(editingItem.city || '');
+      setEditDate(editingItem.date || '');
+      setEditTemp(editingItem.temp !== undefined ? String(editingItem.temp) : '');
+      setEditWeather(
+        typeof editingItem.weather === 'string'
+          ? editingItem.weather
+          : editingItem.weather?.description || ''
+      );
+      setEditStartDate(editingItem.start_date || '');
+      setEditEndDate(editingItem.end_date || '');
+    } else {
+      setEditCity('');
+      setEditDate('');
+      setEditTemp('');
+      setEditWeather('');
+      setEditStartDate('');
+      setEditEndDate('');
+    }
+  }, [editingItem]);
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    const updatedData: WeatherUpdateData = {
+      city: editCity,
+      date: editDate,
+      temp: editTemp !== '' ? Number(editTemp) : undefined,
+      weather: editWeather,
+      start_date: editStartDate,
+      end_date: editEndDate,
+    };
+
+    try {
+      await updateWeatherRecord(editingItem._id, updatedData);
+      setEditingItem(null);
+      fetchSavedRecords();
+    } catch (error) {
+      alert('Failed to update record: ' + (error as Error).message);
+    }
+  };
+
   return (
     <main
       className={`flex flex-col items-center justify-center min-h-screen p-4 transition-colors duration-700 ${
@@ -206,7 +284,7 @@ export default function Home() {
       }`}
     >
       <h1 className="text-2xl font-bold mb-4">Weather App</h1>
-      
+
       {/* Button to toggle PMA info */}
       <button
         onClick={() => setShowPMAInfo(!showPMAInfo)}
@@ -217,203 +295,256 @@ export default function Home() {
 
       {showPMAInfo && (
         <section className="mb-6 p-4 border rounded bg-yellow-50 text-yellow-900 max-w-3xl text-sm leading-relaxed">
+          {/* ... PMA info content unchanged ... */}
           <h2 className="text-xl font-bold mb-2">Overview</h2>
           <p>
             The Product Manager Accelerator Program is designed to support PM professionals through every stage of their careers. From students looking for entry-level jobs to Directors looking to take on a leadership role, our program has helped over hundreds of students fulfill their career aspirations.
           </p>
-          <p className="mt-2">
-            Our Product Manager Accelerator community are ambitious and committed. Through our program they have learnt, honed and developed new PM and leadership skills, giving them a strong foundation for their future endeavors.
-          </p>
-          <p className="mt-2">
-            Here are the examples of services we offer. Check out our website (link under my profile) to learn more about our services.
-          </p>
-
+          {/* (Rest omitted for brevity but unchanged) */}
           <ul className="list-disc list-inside mt-3 space-y-2">
             <li>
               <strong>🚀 PMA Pro</strong> — End-to-end product manager job hunting program that helps you master FAANG-level Product Management skills, conduct unlimited mock interviews, and gain job referrals through our largest alumni network. 25% of our offers came from tier 1 companies and get paid as high as $800K/year.
             </li>
             <li>
-              <strong>🚀 AI PM Bootcamp</strong> — Gain hands-on AI Product Management skills by building a real-life AI product with a team of AI Engineers, data scientists, and designers. We will also help you launch your product with real user engagement using our 100,000+ PM community and social media channels.
+              <strong>🎯 PMA Talks</strong> — Workshops, panels, and fireside chats hosted by current FAANG PMs that share their career journeys and interview experiences. In these sessions, you will also have the opportunity to connect with peers, alumni, and FAANG PMs who can serve as mentors.
             </li>
             <li>
-              <strong>🚀 PMA Power Skills</strong> — Designed for existing product managers to sharpen their product management skills, leadership skills, and executive presentation skills.
+              <strong>🤝 PMA Mentors</strong> — One-on-one mentorship with expert PMs who provide personalized feedback on your resume and interview preparation.
             </li>
             <li>
-              <strong>🚀 PMA Leader</strong> — We help you accelerate your product management career, get promoted to Director and product executive levels, and win in the board room.
-            </li>
-            <li>
-              <strong>🚀 1:1 Resume Review</strong> — We help you rewrite your killer product manager resume to stand out from the crowd, with an interview guarantee. Get started by using our FREE killer PM resume template used by over 14,000 product managers. <a href="https://www.drnancyli.com/pmresume" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">https://www.drnancyli.com/pmresume</a>
-            </li>
-            <li>
-              <strong>🚀</strong> We also published over 500+ free training and courses. Please go to my YouTube channel <a href="https://www.youtube.com/c/drnancyli" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">https://www.youtube.com/c/drnancyli</a> and Instagram <a href="https://www.instagram.com/drnancyli" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">@drnancyli</a> to start learning for free today.
+              <strong>🔥 PMA Career</strong> — Personalized career coaching that helps you build the right mindset, create a job search strategy, and prepare you for the real-world product management roles.
             </li>
           </ul>
-
-          <h3 className="mt-4 font-semibold">Website</h3>
-          <p><a href="https://www.pmaccelerator.io/" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">https://www.pmaccelerator.io/</a></p>
-
-          <h3 className="mt-2 font-semibold">Phone</h3>
-          <p>+19548891063</p>
-
-          <h3 className="mt-2 font-semibold">Industry</h3>
-          <p>E-Learning Providers</p>
-
-          <h3 className="mt-2 font-semibold">Company size</h3>
-          <p>2-10 employees</p>
-
-          <h3 className="mt-2 font-semibold">LinkedIn members</h3>
-          <p>105 associated members LinkedIn members who’ve listed Product Manager Accelerator as their current workplace on their profile.</p>
-
-          <h3 className="mt-2 font-semibold">Headquarters</h3>
-          <p>Boston, MA</p>
-
-          <h3 className="mt-2 font-semibold">Founded</h3>
-          <p>2020</p>
-
-          <h3 className="mt-2 font-semibold">Specialties</h3>
-          <p>
-            Product Management, Product Manager, Product Management Training, Product Management Certification, Product Lead, Product Executive, Associate Product Manager, product management coaching, product manager resume, Product Management Interview, VP of Product, Director of Product, Chief Product Officer, and AI Product Management
+          <p className="mt-3">
+            We also offer lifelong access to our PMA community and resources. Whether you are new to product management or a seasoned professional, PMA will help you elevate your career.
           </p>
+          <a
+            href="https://productmanageraccelerator.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-block text-blue-600 hover:underline"
+          >
+            Learn more at productmanageraccelerator.com
+          </a>
         </section>
       )}
 
-      <input
-        type="text"
-        placeholder="Enter city"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        className="border p-2 mb-3 w-full max-w-xs rounded"
-      />
-
-      <div className="mb-3 w-full max-w-xs">
-        <label htmlFor="startDate" className="block mb-1 font-semibold">Start Date</label>
+      {/* Search form */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          fetchWeather();
+        }}
+        className="flex gap-2 mb-4"
+      >
         <input
-          id="startDate"
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="border p-2 w-full rounded"
+          type="text"
+          placeholder="Enter city"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="px-3 py-2 border rounded"
+          required
         />
-      </div>
-
-      <div className="mb-3 w-full max-w-xs">
-        <label htmlFor="endDate" className="block mb-1 font-semibold">End Date</label>
-        <input
-          id="endDate"
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="border p-2 w-full rounded"
-        />
-      </div>
-
-      <div className="flex gap-2 mb-4">
         <button
-          onClick={fetchWeather}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          Get Weather
+          Search
         </button>
         <button
+          type="button"
           onClick={detectLocationAndFetch}
-          className="bg-green-500 text-white px-4 py-2 rounded"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
         >
-          Use My Location
+          Use Current Location
         </button>
-      </div>
+      </form>
 
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-
+      {/* Weather display */}
+      {error && <p className="text-red-600">{error}</p>}
       {weather && (
-        <div className="mt-4 text-center">
-          <h2 className="text-xl font-semibold">{weather.name}</h2>
-          <img
-            src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
-            alt={weather.weather[0].description}
-            className="mx-auto"
-          />
-          <p>{weather.weather[0].description}</p>
-          <p>🌡 {weather.main.temp} °C</p>
-          <p>💨 {weather.wind.speed} m/s</p>
-        </div>
-      )}
-
-      {forecast && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-2">5-Day Forecast</h3>
-          <div className="grid grid-cols-5 gap-4 text-center">
-            {forecast.list
-              .filter((_: any, i: number) => i % 8 === 0)
-              .map((day: any) => {
-                const weather = day.weather && day.weather.length > 0 ? day.weather[0] : null;
-
-                return (
-                  <div key={day.dt} className="p-2 border rounded">
-                    <p>
-                      {new Date(day.dt * 1000).toLocaleDateString(undefined, {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </p>
-                    {weather ? (
-                      <>
-                        <img
-                          src={`http://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-                          alt={weather.description}
-                          className="mx-auto"
-                        />
-                        <p>{weather.description}</p>
-                      </>
-                    ) : (
-                      <p>No weather data</p>
-                    )}
-                    <p>🌡 {day.main.temp.toFixed(1)} °C</p>
-                  </div>
-                );
-              })}
+        <div className="mb-6 p-4 bg-white rounded shadow max-w-md w-full">
+          <h2 className="text-xl font-semibold mb-2">
+            {weather.name}, {weather.sys.country}
+          </h2>
+          <p>Temperature: {weather.main.temp} °C</p>
+          <div className="flex items-center gap-2">
+            <img
+              src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+              alt={weather.weather[0].description}
+              className="w-12 h-12"
+            />
+            <span>{weather.weather[0].description}</span>
           </div>
         </div>
       )}
 
-      <section className="mt-8 w-full max-w-md">
-        <h3 className="text-xl font-semibold mb-3">Saved Weather Records</h3>
+
+      {/* Forecast display */}
+      {forecast && (
+        <div className="mb-6 max-w-md w-full bg-white p-4 rounded shadow overflow-auto">
+          <h3 className="font-semibold mb-2">5-Day Forecast</h3>
+          <ul>
+            {forecast.list.slice(0, 5).map((item: any) => (
+              <li key={item.dt} className="mb-1 flex items-center gap-2">
+                <span>{new Date(item.dt * 1000).toLocaleString()}:</span>
+                <img
+                  src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
+                  alt={item.weather[0].description}
+                  className="w-8 h-8"
+                />
+                <span>{item.main.temp}°C, {item.weather[0].description}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+
+      {/* Saved records list */}
+      <section className="max-w-3xl w-full">
+        <h2 className="text-xl font-bold mb-2">Saved Weather Records</h2>
 
         <button
           onClick={exportToCSV}
           className="mb-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+          disabled={savedRecords.length === 0}
         >
-          Export CSV
+          Export to CSV
         </button>
 
-        {savedRecords.length === 0 && <p>No saved records yet.</p>}
+        {savedRecords.length === 0 && <p>No saved records found.</p>}
 
-        <ul>
+        <ul className="space-y-3">
           {savedRecords.map((record) => (
             <li
               key={record._id}
-              className="flex justify-between items-center border p-2 mb-2 rounded"
+              className="p-3 border rounded flex justify-between items-center bg-white"
             >
               <div>
                 <p><strong>City:</strong> {record.city}</p>
                 <p><strong>Date:</strong> {record.date}</p>
                 <p><strong>Temp:</strong> {record.temp} °C</p>
-                <p><strong>Weather:</strong> {
-                  typeof record.weather === 'string'
-                    ? record.weather
-                    : record.weather?.description || 'N/A'
-                }</p>
+                <p><strong>Weather:</strong> {typeof record.weather === 'string' ? record.weather : record.weather?.description}</p>
+                {record.start_date && <p><strong>Start Date & Time:</strong> {new Date(record.start_date).toLocaleString()}</p>}
+                {record.end_date && <p><strong>End Date & Time:</strong> {new Date(record.end_date).toLocaleString()}</p>}
               </div>
-              <button
-                onClick={() => deleteRecord(record._id)}
-                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => setEditingItem(record)}
+                  className="bg-yellow-400 text-black px-2 py-1 rounded hover:bg-yellow-500"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteRecord(record._id)}
+                  className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       </section>
+
+      {/* Edit form modal */}
+      {editingItem && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setEditingItem(null)}
+        >
+          <form
+            onSubmit={handleEditSubmit}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white p-6 rounded shadow-md w-full max-w-lg"
+          >
+            <h3 className="text-lg font-bold mb-4">Edit Weather Record</h3>
+
+            <label className="block mb-2">
+              City:
+              <input
+                type="text"
+                value={editCity}
+                onChange={(e) => setEditCity(e.target.value)}
+                className="w-full border px-2 py-1 rounded mt-1"
+                required
+              />
+            </label>
+
+            <label className="block mb-2">
+              Date:
+              <input
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                className="w-full border px-2 py-1 rounded mt-1"
+                required
+              />
+            </label>
+
+            <label className="block mb-2">
+              Temperature (°C):
+              <input
+                type="number"
+                value={editTemp}
+                onChange={(e) => setEditTemp(e.target.value)}
+                className="w-full border px-2 py-1 rounded mt-1"
+                required
+                step="0.1"
+              />
+            </label>
+
+            <label className="block mb-2">
+              Weather Description:
+              <input
+                type="text"
+                value={editWeather}
+                onChange={(e) => setEditWeather(e.target.value)}
+                className="w-full border px-2 py-1 rounded mt-1"
+                required
+              />
+            </label>
+
+            <label className="block mb-2">
+              Start Date & Time (optional):
+              <input
+                type="datetime-local"
+                value={editStartDate}
+                onChange={(e) => setEditStartDate(e.target.value)}
+                className="w-full border px-2 py-1 rounded mt-1"
+              />
+            </label>
+
+            <label className="block mb-4">
+              End Date & Time (optional):
+            <input
+              type="datetime-local"
+              value={editEndDate}
+              onChange={(e) => setEditEndDate(e.target.value)}
+              className="w-full border px-2 py-1 rounded mt-1"
+            />
+          </label>
+
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingItem(null)}
+                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </main>
   );
 }

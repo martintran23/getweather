@@ -32,7 +32,7 @@ npm install
 
 
 ###  3. Run App Locally
-In one terminal, in the backend directory, run the command "python app.py" to deploy the backend on Flask. Then in another terminal, in the frontend directory, run the command "npm run dev" to deploy the front end on Vercel.
+In one terminal, in the backend directory, run the command "python app.py" to deploy the backend on Flask. Then in another terminal, in the frontend directory, run the command "npm run dev" to deploy the front end on Next.js.
 
 ```bash
 python app.py
@@ -42,4 +42,3 @@ npm run dev
 
 ### 4. Access App
 Open "http://localhost:3000" on a browser to access the application.
-Or open "https://getweather-psi.vercel.app".

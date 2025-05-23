@@ -62,7 +62,7 @@ export default function Home() {
   const [showPMAInfo, setShowPMAInfo] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  const BACKEND_URL = 'http://127.0.0.1:5000'; // Adjust backend URL if needed
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL!; // Adjust backend URL if needed
   const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
 
   const fetchWeather = async () => {

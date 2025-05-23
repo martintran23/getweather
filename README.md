@@ -1,10 +1,16 @@
 # Weather App — Fullstack Setup
 
-This project consists of a **Flask backend** API and a **Next.js frontend** deployed locally and separately. The backend handles weather data storage and retrieval, while the frontend interacts with users. The app uses cloud-based storage via MongoDB Atlas for storing weather data.
+This project consists of a **Flask backend (Render)** API and a **Next.js frontend (Vercel)** deployed separately. The backend handles weather data storage and retrieval, while the frontend interacts with users. The app uses cloud-based storage via MongoDB Atlas for storing weather data.
 
 ---
 
-## Setup Instructions
+## Live Test
+Access the live app here:
+https://getweather-psi.vercel.app
+
+---
+
+## Local Setup Instructions
 
 ### 1. Clone Repository
 Clone the Github repository, and access the weather-app directory.

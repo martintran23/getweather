@@ -18,7 +18,7 @@ CORS(app)
 uri = os.getenv("MONGODB_URI")
 client = MongoClient(uri, server_api=ServerApi('1'))
 db = client.weatherappdb
-weather_collection = db.weather_data
+weather_collection = db.weather
 
 def is_valid_date(date_str):
     try:
@@ -34,26 +34,16 @@ def location_exists(city):
     )
     return response.status_code == 200 and len(response.json()) > 0
 
-@app.route('/saveWeather', methods=['POST'])
+@app.route("/saveWeather", methods=["POST"])
 def save_weather():
+    data = request.json
+    print("Received data:", data)
     try:
-        data = request.get_json()
-
-        if not all(k in data for k in ('city', 'date', 'temp', 'weather')):
-            return jsonify({'error': 'Missing required fields'}), 400
-
-        record = {
-            'city': data['city'],
-            'date': data['date'],
-            'temp': data['temp'],
-            'weather': data['weather']  # should be a string
-        }
-        db.weather.insert_one(record)
-        return jsonify({'message': 'Weather saved successfully'}), 200
-
+        db.weather.insert_one(data)
+        return jsonify({"message": "Saved successfully"}), 200
     except Exception as e:
-        print('Error in /saveWeather:', e)
-        return jsonify({'error': str(e)}), 500
+        print("Error saving:", e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/getWeather', methods=['GET'])
 def get_weather():

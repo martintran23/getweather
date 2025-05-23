@@ -2,6 +2,31 @@
 
 import { useState, useEffect } from 'react';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+async function saveWeather({ city, date, temp, weather }: { city: string; date: string; temp: number; weather: string }) {
+  try {
+    const response = await fetch(`${BASE_URL}/saveWeather`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ city, date, temp, weather }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Weather saved:", data);
+    return data;
+  } catch (error) {
+    console.error("Failed to save weather:", error);
+    throw error;
+  }
+}
+
 const getBackgroundClass = (iconCode: string | undefined) => {
   switch (iconCode) {
     case '01d': return 'bg-blue-400';

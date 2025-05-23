@@ -1,33 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Weather App — Fullstack Setup
 
-## Getting Started
+This project consists of a **Flask backend** API and a **Next.js frontend** deployed separately. The backend handles weather data storage and retrieval, while the frontend interacts with users.
 
-First, run the development server:
+---
+
+## Setup Instructions
+
+### 1. Clone Repository
+# Clone the Github repository, and access the weather-app directory.
 
 ```bash
+git clone https://github.com/martintran23/getweather.git
+cd weather-app
+
+### 2. Install Dependencies
+# Navigate to the backend and install the requirements from the requirements.txt. Activate the virtual environment, then navigate to the frontend and install Node Package Manager (npm).
+
+cd backend
+pip install -r requirements.txt
+python -m venv venv
+# macOS/Linux
+source venv/bin/activate
+# Windows (PowerShell)
+venv\Scripts\activate
+
+cd ../frontend
+npm install
+
+### 3. Run App Locally
+# In one terminal, in the backend directory, run the command "python app.py" to deploy the backend on Flask. Then in another terminal, in the frontend directory, run the command "npm run dev" to deploy the front end on Vercel.
+
+python app.py
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Access App
+# Open "http://localhost:3000" on a browser to access the application.
 
 ## Deploy on Vercel
 

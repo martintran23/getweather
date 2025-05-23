@@ -1,6 +1,9 @@
 # Ignore environment variables file
 .env
 
+# Virtual environment folder
+venv/
+
 # Python cache files
 __pycache__/
 *.py[cod]

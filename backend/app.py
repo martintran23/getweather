@@ -152,6 +152,10 @@ def export_weather():
         headers={"Content-Disposition": "attachment; filename=weather_data.csv"}
     )
 
+@app.route('/')
+def home():
+    return jsonify({"message": "Backend is running!"})
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
